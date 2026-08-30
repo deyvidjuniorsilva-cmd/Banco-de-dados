@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", enabled: true },
   { label: "Importar extrato", href: "/dashboard/importar", enabled: true },
   { label: "Transações", href: "#", enabled: false },
-  { label: "Categorias", href: "#", enabled: false },
+  { label: "Categorias", href: "/dashboard/categorias", enabled: true },
   { label: "Orçamento", href: "#", enabled: false },
 ] as const;
 
