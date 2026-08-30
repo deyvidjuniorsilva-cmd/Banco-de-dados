@@ -1,8 +1,8 @@
-// Using require for CommonJS version of pdf-parse which has the expected API
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pdf = require("pdf-parse");
+import { PDFParse } from "pdf-parse";
 
 export async function extractPdfText(buffer: Buffer): Promise<string> {
-  const result = await pdf(buffer);
+  const parser = new PDFParse({ data: buffer });
+  const result = await parser.getText();
+  await parser.destroy();
   return result.text;
 }
