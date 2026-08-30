@@ -59,9 +59,13 @@ export function ReviewTable({
 
   async function handleCreateCategory() {
     if (!newCategoryName.trim()) return;
-    const category = await createCategory(supabase, newCategoryName.trim());
-    setCategories((prev) => [...prev, category].sort((a, b) => a.name.localeCompare(b.name)));
-    setNewCategoryName("");
+    try {
+      const category = await createCategory(supabase, newCategoryName.trim());
+      setCategories((prev) => [...prev, category].sort((a, b) => a.name.localeCompare(b.name)));
+      setNewCategoryName("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao criar categoria.");
+    }
   }
 
   async function handleConfirm() {
