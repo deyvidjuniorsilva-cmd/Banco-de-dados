@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { extractPdfText } from "@/lib/pdf/extract-text";
 import { parseNubank } from "@/lib/parsers/nubank";
-import { getOrCreateNubankAccount } from "@/lib/accounts";
+import { getOrCreateAccount } from "@/lib/accounts";
 import type { ParsedTransaction } from "@/lib/parsers/types";
 import { errorMessage } from "@/lib/errors";
 
@@ -24,7 +24,7 @@ export async function importarExtrato(formData: FormData): Promise<
 
   let account: { id: string };
   try {
-    account = await getOrCreateNubankAccount(supabase, user.id);
+    account = await getOrCreateAccount(supabase, user.id, "nubank");
   } catch (err) {
     return { error: `Falha ao obter conta Nubank: ${errorMessage(err)}` };
   }

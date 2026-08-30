@@ -1,15 +1,28 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export async function getOrCreateNubankAccount(
+type SupportedBank = "nubank" | "sicoob_credivar";
+
+const ACCOUNT_DEFAULTS: Record<
+  SupportedBank,
+  { name: string; kind: "conta" | "cartao" }
+> = {
+  nubank: { name: "Nubank (cartão)", kind: "cartao" },
+  sicoob_credivar: { name: "Sicoob Credivar (conta)", kind: "conta" },
+};
+
+export async function getOrCreateAccount(
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
+  bank: SupportedBank
 ): Promise<{ id: string }> {
+  const { name, kind } = ACCOUNT_DEFAULTS[bank];
+
   const { data: existing, error: selectError } = await supabase
     .from("accounts")
     .select("id")
     .eq("owner", userId)
-    .eq("bank", "nubank")
-    .eq("kind", "cartao")
+    .eq("bank", bank)
+    .eq("kind", kind)
     .maybeSingle();
 
   if (selectError) throw selectError;
@@ -17,7 +30,7 @@ export async function getOrCreateNubankAccount(
 
   const { data: created, error: insertError } = await supabase
     .from("accounts")
-    .insert({ name: "Nubank (cartão)", bank: "nubank", kind: "cartao" })
+    .insert({ name, bank, kind })
     .select("id")
     .single();
 
