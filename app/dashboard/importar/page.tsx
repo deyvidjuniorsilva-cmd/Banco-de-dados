@@ -4,6 +4,7 @@ import { useState } from "react";
 import { importarExtrato } from "./actions";
 import type { ParsedTransaction } from "@/lib/parsers/types";
 import { ReviewTable } from "./review-table";
+import { errorMessage } from "@/lib/errors";
 
 export default function ImportarPage() {
   const [result, setResult] = useState<{
@@ -17,13 +18,18 @@ export default function ImportarPage() {
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError(null);
-    const response = await importarExtrato(formData);
-    setLoading(false);
-    if ("error" in response) {
-      setError(response.error);
-      return;
+    try {
+      const response = await importarExtrato(formData);
+      if ("error" in response) {
+        setError(response.error);
+        return;
+      }
+      setResult(response);
+    } catch (err) {
+      setError(`Falha inesperada: ${errorMessage(err)}`);
+    } finally {
+      setLoading(false);
     }
-    setResult(response);
   }
 
   if (result) {
@@ -32,6 +38,7 @@ export default function ImportarPage() {
         importId={result.importId}
         accountId={result.accountId}
         initialTransactions={result.transactions}
+        onCancel={() => setResult(null)}
       />
     );
   }

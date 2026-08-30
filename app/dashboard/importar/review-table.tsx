@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { listCategories, createCategory, type Category } from "@/lib/categories";
 import type { ParsedTransaction } from "@/lib/parsers/types";
 import { confirmarImport } from "./confirm-action";
+import { errorMessage } from "@/lib/errors";
 
 interface Row extends ParsedTransaction {
   categoryId: string | null;
@@ -15,10 +16,12 @@ export function ReviewTable({
   importId,
   accountId,
   initialTransactions,
+  onCancel,
 }: {
   importId: string;
   accountId: string;
   initialTransactions: ParsedTransaction[];
+  onCancel: () => void;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -31,7 +34,9 @@ export function ReviewTable({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    listCategories(supabase).then(setCategories).catch(() => {});
+    listCategories(supabase)
+      .then(setCategories)
+      .catch((err) => setError(`Falha ao carregar categorias: ${errorMessage(err)}`));
   }, [supabase]);
 
   function updateRow(index: number, patch: Partial<Row>) {
@@ -64,20 +69,25 @@ export function ReviewTable({
       setCategories((prev) => [...prev, category].sort((a, b) => a.name.localeCompare(b.name)));
       setNewCategoryName("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao criar categoria.");
+      setError(errorMessage(err));
     }
   }
 
   async function handleConfirm() {
     setSaving(true);
     setError(null);
-    const response = await confirmarImport(importId, accountId, rows);
-    setSaving(false);
-    if ("error" in response) {
-      setError(response.error);
-      return;
+    try {
+      const response = await confirmarImport(importId, accountId, rows);
+      if ("error" in response) {
+        setError(response.error);
+        return;
+      }
+      router.push("/dashboard");
+    } catch (err) {
+      setError(`Falha inesperada: ${errorMessage(err)}`);
+    } finally {
+      setSaving(false);
     }
-    router.push("/dashboard");
   }
 
   return (
@@ -89,6 +99,13 @@ export function ReviewTable({
         Confira, corrija ou remova linhas antes de salvar. Nada foi gravado
         ainda.
       </p>
+
+      {initialTransactions.length === 0 && (
+        <p className="rounded-lg bg-surface-hover px-3 py-2 text-sm text-muted">
+          Nenhuma transação foi encontrada neste PDF. Você pode adicionar
+          linhas manualmente ou cancelar.
+        </p>
+      )}
 
       <div className="flex items-center gap-2">
         <input
@@ -208,14 +225,24 @@ export function ReviewTable({
         </p>
       )}
 
-      <button
-        type="button"
-        onClick={handleConfirm}
-        disabled={saving || rows.length === 0}
-        className="w-fit rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition-colors hover:bg-brand-hover disabled:opacity-60"
-      >
-        {saving ? "Salvando..." : `Salvar ${rows.length} transações`}
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleConfirm}
+          disabled={saving || rows.length === 0}
+          className="w-fit rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition-colors hover:bg-brand-hover disabled:opacity-60"
+        >
+          {saving ? "Salvando..." : `Salvar ${rows.length} transações`}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={saving}
+          className="w-fit rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-surface-hover disabled:opacity-60"
+        >
+          Cancelar
+        </button>
+      </div>
     </div>
   );
 }

@@ -18,6 +18,29 @@ export async function confirmarImport(
 ): Promise<{ error: string } | { success: true }> {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sessão expirada, faça login novamente." };
+
+  const { data: accountRow, error: accountError } = await supabase
+    .from("accounts")
+    .select("id")
+    .eq("id", accountId)
+    .eq("owner", user.id)
+    .maybeSingle();
+  if (accountError) return { error: `Falha ao verificar conta: ${accountError.message}` };
+  if (!accountRow) return { error: "Conta não encontrada ou não pertence a este usuário." };
+
+  const { data: importRow, error: importCheckError } = await supabase
+    .from("imports")
+    .select("id")
+    .eq("id", importId)
+    .eq("owner", user.id)
+    .maybeSingle();
+  if (importCheckError) return { error: `Falha ao verificar importação: ${importCheckError.message}` };
+  if (!importRow) return { error: "Importação não encontrada ou não pertence a este usuário." };
+
   const { error: insertError } = await supabase.from("transactions").insert(
     rows.map((row) => ({
       account_id: accountId,
