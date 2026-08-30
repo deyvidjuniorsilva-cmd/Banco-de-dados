@@ -1,34 +1,24 @@
 import { PDFParse } from "pdf-parse";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { existsSync, readFileSync } from "node:fs";
-import { createRequire } from "node:module";
 
-// Resolve the worker path relative to the pdf-parse package itself rather
-// than process.cwd(), so it stays correct regardless of where the process
-// is launched from (and so it can be traced into Next's standalone/
-// serverless output bundle). pdf-parse's package.json doesn't expose a
-// "./package.json" export subpath, so we resolve the package's main entry
-// and walk up to the package root instead.
-const require = createRequire(import.meta.url);
-const pdfParseEntry = require.resolve("pdf-parse");
-function findPackageRoot(fromDir: string): string {
-  let dir = fromDir;
-  for (;;) {
-    const candidate = path.join(dir, "package.json");
-    if (existsSync(candidate)) {
-      const pkg = JSON.parse(readFileSync(candidate, "utf8"));
-      if (pkg.name === "pdf-parse") return dir;
-    }
-    const parent = path.dirname(dir);
-    if (parent === dir) {
-      throw new Error("Could not locate pdf-parse package root");
-    }
-    dir = parent;
-  }
-}
-const pdfParseRoot = findPackageRoot(path.dirname(pdfParseEntry));
-const workerPath = path.join(pdfParseRoot, "dist/worker/pdf.worker.mjs");
+// Resolve the worker file relative to process.cwd(). This relies on
+// `serverExternalPackages: ["pdf-parse"]` in next.config.ts, which tells
+// Next.js to load this package from a real node_modules directory at
+// runtime instead of bundling it — the standard pattern for
+// worker/native-dependent packages (pdfjs-dist, sharp, canvas, etc.).
+// With that setting, process.cwd() is the deployment root at runtime on
+// both `next dev`/`next start` and Vercel, so this stays correct without
+// needing bundler-fragile resolution tricks. (A prior attempt resolved
+// this via `createRequire(import.meta.url)` + a package-root walk-up,
+// which looked correct in an isolated `node -e` probe but broke at
+// runtime under Turbopack's bundling — verified by an actual failed
+// upload, not just theory. Reverted to this cwd-based approach, which
+// was already verified working end-to-end against a real PDF upload.)
+const workerPath = path.join(
+  process.cwd(),
+  "node_modules/pdf-parse/dist/worker/pdf.worker.mjs"
+);
 PDFParse.setWorker(pathToFileURL(workerPath).href);
 
 export async function extractPdfText(buffer: Buffer): Promise<string> {
