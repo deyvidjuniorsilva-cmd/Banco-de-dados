@@ -33,7 +33,7 @@ export async function importarExtrato(formData: FormData): Promise<
   try {
     account = await getOrCreateAccount(supabase, user.id, bank);
   } catch (err) {
-    return { error: `Falha ao obter conta Nubank: ${errorMessage(err)}` };
+    return { error: `Falha ao obter a conta: ${errorMessage(err)}` };
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());

@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  outputFileTracingIncludes: {
+    "/dashboard/importar": ["./node_modules/pdf-parse/dist/worker/**"],
+  },
 };
 
 export default nextConfig;

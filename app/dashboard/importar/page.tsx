@@ -49,7 +49,7 @@ export default function ImportarPage() {
         Importar extrato
       </h1>
       <p className="text-sm text-muted">
-        Envie a fatura em PDF do Nubank para extrair as transações
+        Selecione o banco e envie o extrato em PDF para extrair as transações
         automaticamente.
       </p>
       <form action={handleSubmit} className="flex flex-col gap-3">
