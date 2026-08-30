@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { extractPdfText } from "@/lib/pdf/extract-text";
 import { parseNubank } from "@/lib/parsers/nubank";
+import { parseSicoob } from "@/lib/parsers/sicoob";
 import { getOrCreateAccount } from "@/lib/accounts";
 import type { ParsedTransaction } from "@/lib/parsers/types";
 import { errorMessage } from "@/lib/errors";
@@ -22,9 +23,15 @@ export async function importarExtrato(formData: FormData): Promise<
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sessão expirada, faça login novamente." };
 
+  const bankValue = formData.get("bank");
+  if (bankValue !== "nubank" && bankValue !== "sicoob_credivar") {
+    return { error: "Selecione o banco de origem do extrato." };
+  }
+  const bank = bankValue;
+
   let account: { id: string };
   try {
-    account = await getOrCreateAccount(supabase, user.id, "nubank");
+    account = await getOrCreateAccount(supabase, user.id, bank);
   } catch (err) {
     return { error: `Falha ao obter conta Nubank: ${errorMessage(err)}` };
   }
@@ -39,7 +46,7 @@ export async function importarExtrato(formData: FormData): Promise<
   let transactions: ParsedTransaction[];
   try {
     const text = await extractPdfText(buffer);
-    transactions = parseNubank(text);
+    transactions = bank === "nubank" ? parseNubank(text) : parseSicoob(text);
   } catch (parseError) {
     return {
       error: `Não foi possível extrair as transações: ${errorMessage(parseError)}`,

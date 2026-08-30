@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { listCategories, createCategory, type Category } from "@/lib/categories";
+import { listCategoryRules } from "@/lib/category-rules";
+import { matchCategory } from "@/lib/categorization";
 import type { ParsedTransaction } from "@/lib/parsers/types";
 import { confirmarImport } from "./confirm-action";
 import { errorMessage } from "@/lib/errors";
@@ -34,10 +36,30 @@ export function ReviewTable({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    listCategories(supabase)
-      .then(setCategories)
-      .catch((err) => setError(`Falha ao carregar categorias: ${errorMessage(err)}`));
-  }, [supabase]);
+    async function loadCategorizationData() {
+      try {
+        const [categoryList, ruleList] = await Promise.all([
+          listCategories(supabase),
+          listCategoryRules(supabase),
+        ]);
+        setCategories(categoryList);
+        setRows((prev) =>
+          prev.map((row) =>
+            row.categoryId
+              ? row
+              : {
+                  ...row,
+                  categoryId: matchCategory(row.description, ruleList),
+                }
+          )
+        );
+      } catch (err) {
+        setError(`Falha ao carregar categorias: ${errorMessage(err)}`);
+      }
+    }
+    loadCategorizationData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function updateRow(index: number, patch: Partial<Row>) {
     setRows((prev) =>

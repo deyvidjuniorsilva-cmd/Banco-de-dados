@@ -53,6 +53,15 @@ export default function ImportarPage() {
         automaticamente.
       </p>
       <form action={handleSubmit} className="flex flex-col gap-3">
+        <select
+          name="bank"
+          required
+          className="rounded-lg border border-border bg-surface p-2 text-sm text-foreground"
+        >
+          <option value="">Selecione o banco</option>
+          <option value="nubank">Nubank (fatura de cartão)</option>
+          <option value="sicoob_credivar">Sicoob Credivar (extrato de conta)</option>
+        </select>
         <input
           type="file"
           name="file"
