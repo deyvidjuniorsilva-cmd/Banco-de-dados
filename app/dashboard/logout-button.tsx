@@ -11,6 +11,7 @@ export function LogoutButton() {
     <button
       onClick={async () => {
         await supabase.auth.signOut();
+        router.refresh();
         router.push("/login");
       }}
       className="rounded border px-3 py-1 text-sm"
