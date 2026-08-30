@@ -8,6 +8,7 @@ import { LogoutButton } from "./logout-button";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", enabled: true },
+  { label: "Importar extrato", href: "/dashboard/importar", enabled: true },
   { label: "Transações", href: "#", enabled: false },
   { label: "Categorias", href: "#", enabled: false },
   { label: "Orçamento", href: "#", enabled: false },
