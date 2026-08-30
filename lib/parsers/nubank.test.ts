@@ -43,6 +43,26 @@ describe("parseNubank", () => {
     });
   });
 
+  it("extrai transação exatamente no mês de vencimento (limite do rollover de ano)", () => {
+    const result = parseNubank(NUBANK_SAMPLE_TEXT);
+    expect(result).toContainEqual({
+      date: "2026-03-02",
+      description: "Supermercado Central",
+      amount: 245,
+      direction: "saida",
+    });
+  });
+
+  it("extrai transação com o segundo cartão (•••• 0002)", () => {
+    const result = parseNubank(NUBANK_SAMPLE_TEXT);
+    expect(result).toContainEqual({
+      date: "2026-02-25",
+      description: "Posto Ipiranga",
+      amount: 150,
+      direction: "saida",
+    });
+  });
+
   it("ignora a linha de subtotal do titular", () => {
     const result = parseNubank(NUBANK_SAMPLE_TEXT);
     expect(
@@ -65,7 +85,16 @@ Data de vencimento: 10 JAN 2027
     });
   });
 
-  it("retorna array vazio para texto sem transações", () => {
-    expect(parseNubank("nada aqui")).toEqual([]);
+  it("lança erro quando a data de vencimento não é encontrada", () => {
+    expect(() => parseNubank("nada aqui")).toThrow();
+  });
+
+  it("retorna array vazio para texto com data de vencimento mas sem transações", () => {
+    const text = `
+Data de vencimento: 15 MAR 2026
+
+Nenhuma transação neste período.
+`;
+    expect(parseNubank(text)).toEqual([]);
   });
 });

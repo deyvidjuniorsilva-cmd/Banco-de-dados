@@ -26,8 +26,11 @@ function directionFromSign(sign: string): Direction {
 
 export function parseNubank(text: string): ParsedTransaction[] {
   const dueMatch = text.match(DUE_DATE_PATTERN);
-  const dueMonth = dueMatch ? MONTHS[dueMatch[2]] : new Date().getMonth() + 1;
-  const dueYear = dueMatch ? parseInt(dueMatch[3], 10) : new Date().getFullYear();
+  if (!dueMatch) {
+    throw new Error("Não foi possível encontrar a data de vencimento no PDF.");
+  }
+  const dueMonth = MONTHS[dueMatch[2]];
+  const dueYear = parseInt(dueMatch[3], 10);
 
   const lines = text.split("\n").map((line) => line.trim());
   const transactions: ParsedTransaction[] = [];
