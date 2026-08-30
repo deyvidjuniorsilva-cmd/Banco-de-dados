@@ -13,11 +13,11 @@
   --brand-foreground: #ffffff;
   --brand-soft: #e8effe;
 
-  --sidebar-bg: #0b1730;
-  --sidebar-foreground: #c9d4ec;
-  --sidebar-foreground-muted: #7688b3;
-  --sidebar-active-bg: #17274d;
-  --sidebar-border: #16223f;
+  --sidebar-bg: #ffffff;
+  --sidebar-foreground: #101828;
+  --sidebar-foreground-muted: #5b6785;
+  --sidebar-active-bg: #e8effe;
+  --sidebar-border: #e1e7f2;
 
   --success: #16a34a;
   --success-soft: #e7f7ed;
