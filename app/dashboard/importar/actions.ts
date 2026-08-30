@@ -36,8 +36,15 @@ export async function importarExtrato(formData: FormData): Promise<
     .upload(path, buffer, { contentType: "application/pdf" });
   if (uploadError) return { error: `Falha no upload: ${uploadError.message}` };
 
-  const text = await extractPdfText(buffer);
-  const transactions = parseNubank(text);
+  let transactions: ParsedTransaction[];
+  try {
+    const text = await extractPdfText(buffer);
+    transactions = parseNubank(text);
+  } catch (parseError) {
+    const message =
+      parseError instanceof Error ? parseError.message : "Falha ao processar o PDF.";
+    return { error: `Não foi possível extrair as transações: ${message}` };
+  }
 
   const { data: importRow, error: importError } = await supabase
     .from("imports")
