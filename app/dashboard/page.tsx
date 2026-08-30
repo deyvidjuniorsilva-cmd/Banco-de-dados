@@ -1,9 +1,13 @@
 import { Card } from "@/components/card";
 
 const SUMMARY_CARDS = [
-  { label: "Saldo do mês", tone: "default" as const },
-  { label: "Receitas do mês", tone: "success" as const },
-  { label: "Gastos do mês", tone: "danger" as const },
+  { label: "Saldo do mês", tone: "default" as const, href: "/dashboard/saldo" },
+  {
+    label: "Receitas do mês",
+    tone: "success" as const,
+    href: "/dashboard/receitas",
+  },
+  { label: "Gastos do mês", tone: "danger" as const, href: "/dashboard/gastos" },
 ];
 
 export default function DashboardPage() {
@@ -19,7 +23,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {SUMMARY_CARDS.map((card) => (
-          <Card key={card.label}>
+          <Card key={card.label} href={card.href}>
             <p className="text-sm text-muted">{card.label}</p>
             <p
               className={`mt-2 text-2xl font-semibold ${
@@ -33,6 +37,9 @@ export default function DashboardPage() {
               —
             </p>
             <p className="mt-1 text-xs text-muted">Sem dados ainda</p>
+            <p className="mt-3 text-xs font-medium text-brand">
+              Ver detalhes →
+            </p>
           </Card>
         ))}
       </div>
