@@ -14,7 +14,7 @@ export function LogoutButton() {
         router.refresh();
         router.push("/login");
       }}
-      className="rounded border px-3 py-1 text-sm"
+      className="w-full rounded-lg border border-sidebar-border px-3 py-2 text-left text-sm text-sidebar-foreground-muted transition-colors hover:border-transparent hover:bg-sidebar-active hover:text-sidebar-foreground"
     >
       Sair
     </button>

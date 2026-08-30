@@ -1,26 +1,111 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f6fb;
+  --surface: #ffffff;
+  --surface-hover: #eef2fa;
+  --border: #e1e7f2;
+  --foreground: #101828;
+  --muted: #5b6785;
+
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --brand-foreground: #ffffff;
+  --brand-soft: #e8effe;
+
+  --sidebar-bg: #0b1730;
+  --sidebar-foreground: #c9d4ec;
+  --sidebar-foreground-muted: #7688b3;
+  --sidebar-active-bg: #17274d;
+  --sidebar-border: #16223f;
+
+  --success: #16a34a;
+  --success-soft: #e7f7ed;
+  --danger: #dc2626;
+  --danger-soft: #fdeaea;
+}
+
+:root[data-theme="dark"] {
+  --background: #0a0f1e;
+  --surface: #111a30;
+  --surface-hover: #16213b;
+  --border: #1f2c4a;
+  --foreground: #e7ecf7;
+  --muted: #8b97b8;
+
+  --brand: #3b82f6;
+  --brand-hover: #60a5fa;
+  --brand-foreground: #071021;
+  --brand-soft: #12213f;
+
+  --sidebar-bg: #060b18;
+  --sidebar-foreground: #c9d4ec;
+  --sidebar-foreground-muted: #63709a;
+  --sidebar-active-bg: #121f3d;
+  --sidebar-border: #101a30;
+
+  --success: #22c55e;
+  --success-soft: #0f2419;
+  --danger: #f87171;
+  --danger-soft: #2b1414;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0a0f1e;
+    --surface: #111a30;
+    --surface-hover: #16213b;
+    --border: #1f2c4a;
+    --foreground: #e7ecf7;
+    --muted: #8b97b8;
+
+    --brand: #3b82f6;
+    --brand-hover: #60a5fa;
+    --brand-foreground: #071021;
+    --brand-soft: #12213f;
+
+    --sidebar-bg: #060b18;
+    --sidebar-foreground: #c9d4ec;
+    --sidebar-foreground-muted: #63709a;
+    --sidebar-active-bg: #121f3d;
+    --sidebar-border: #101a30;
+
+    --success: #22c55e;
+    --success-soft: #0f2419;
+    --danger: #f87171;
+    --danger-soft: #2b1414;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+
+  --color-sidebar: var(--sidebar-bg);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-foreground-muted: var(--sidebar-foreground-muted);
+  --color-sidebar-active: var(--sidebar-active-bg);
+  --color-sidebar-border: var(--sidebar-border);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
