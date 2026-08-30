@@ -6,6 +6,19 @@ import { parseNubank } from "@/lib/parsers/nubank";
 import { getOrCreateNubankAccount } from "@/lib/accounts";
 import type { ParsedTransaction } from "@/lib/parsers/types";
 
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (
+    err &&
+    typeof err === "object" &&
+    "message" in err &&
+    typeof (err as { message: unknown }).message === "string"
+  ) {
+    return (err as { message: string }).message;
+  }
+  return "Erro desconhecido";
+}
+
 export async function importarExtrato(formData: FormData): Promise<
   | { importId: string; accountId: string; transactions: ParsedTransaction[] }
   | { error: string }
@@ -25,8 +38,7 @@ export async function importarExtrato(formData: FormData): Promise<
   try {
     account = await getOrCreateNubankAccount(supabase, user.id);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return { error: `Falha ao obter conta Nubank: ${message}` };
+    return { error: `Falha ao obter conta Nubank: ${errorMessage(err)}` };
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -41,9 +53,9 @@ export async function importarExtrato(formData: FormData): Promise<
     const text = await extractPdfText(buffer);
     transactions = parseNubank(text);
   } catch (parseError) {
-    const message =
-      parseError instanceof Error ? parseError.message : "Falha ao processar o PDF.";
-    return { error: `Não foi possível extrair as transações: ${message}` };
+    return {
+      error: `Não foi possível extrair as transações: ${errorMessage(parseError)}`,
+    };
   }
 
   const { data: importRow, error: importError } = await supabase
