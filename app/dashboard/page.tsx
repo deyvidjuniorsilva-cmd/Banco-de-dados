@@ -4,6 +4,7 @@ import { MonthNav } from "@/components/month-nav";
 import { CategoryBreakdownChart } from "@/components/category-breakdown-chart";
 import { MobileBalanceSummary } from "@/components/mobile-balance-summary";
 import { BudgetList } from "@/components/budget-list";
+import { BudgetAlertsBanner, type OverBudgetEntry } from "@/components/budget-alerts-banner";
 import { ForecastCards } from "@/components/forecast-cards";
 import { SavingsSuggestions } from "@/components/savings-suggestions";
 import {
@@ -13,7 +14,7 @@ import {
   listCategoryTotalsForMonths,
 } from "@/lib/dashboard";
 import { listCategories } from "@/lib/categories";
-import { listBudgetsForMonth } from "@/lib/budgets";
+import { listBudgetsForMonth, isOverBudget } from "@/lib/budgets";
 import { computeCategoryForecasts, rankSavingsSuggestions } from "@/lib/forecast";
 import { currencyFormatter } from "@/lib/format";
 
@@ -55,6 +56,15 @@ export default async function DashboardPage({
     budgetLimitByCategory[budget.categoryId] = budget.limitAmount;
   }
 
+  const overBudgetEntries: OverBudgetEntry[] = categories
+    .filter((category) => isOverBudget(currentSpendByCategory[category.id] ?? 0, budgetLimitByCategory[category.id] ?? null))
+    .map((category) => ({
+      categoryId: category.id,
+      categoryName: category.name,
+      currentSpend: currentSpendByCategory[category.id] ?? 0,
+      limitAmount: budgetLimitByCategory[category.id],
+    }));
+
   const summaryCards = [
     {
       label: "Saldo do mês",
@@ -85,6 +95,8 @@ export default async function DashboardPage({
         </div>
         <MonthNav pathname="/dashboard" year={year} month={month} />
       </div>
+
+      <BudgetAlertsBanner entries={overBudgetEntries} />
 
       <MobileBalanceSummary cards={summaryCards} />
 

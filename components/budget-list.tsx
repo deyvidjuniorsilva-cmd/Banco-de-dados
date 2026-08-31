@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   upsertBudget,
+  deleteBudget,
   isOverBudget,
   isNearBudgetLimit,
   isOverHistoricalAverage,
@@ -38,13 +39,33 @@ export function BudgetList({
     return budgets.find((b) => b.categoryId === categoryId);
   }
 
+  function suggestedLimitFor(categoryId: string): number | null {
+    if (budgetFor(categoryId)) return null;
+    const average = historicalAverageByCategory[categoryId] ?? null;
+    return average !== null ? Math.round(average * 100) / 100 : null;
+  }
+
   async function handleSave(categoryId: string) {
-    const raw = drafts[categoryId];
+    const raw = drafts[categoryId] ?? suggestedLimitFor(categoryId)?.toString();
     const parsed = raw !== undefined ? parseFloat(raw.replace(",", ".")) : NaN;
     if (!Number.isFinite(parsed) || parsed < 0) return;
     try {
       const updated = await upsertBudget(supabase, categoryId, year, month, parsed);
       setBudgets((prev) => [...prev.filter((b) => b.categoryId !== categoryId), updated]);
+      setDrafts((prev) => {
+        const next = { ...prev };
+        delete next[categoryId];
+        return next;
+      });
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }
+
+  async function handleDelete(budgetId: string, categoryId: string) {
+    try {
+      await deleteBudget(supabase, budgetId);
+      setBudgets((prev) => prev.filter((b) => b.id !== budgetId));
       setDrafts((prev) => {
         const next = { ...prev };
         delete next[categoryId];
@@ -68,6 +89,7 @@ export function BudgetList({
         const currentSpend = currentSpendByCategory[category.id] ?? 0;
         const average = historicalAverageByCategory[category.id] ?? null;
         const limitAmount = budget?.limitAmount ?? null;
+        const suggested = limitAmount === null ? suggestedLimitFor(category.id) : null;
         const over = isOverBudget(currentSpend, limitAmount);
         const near = !over && isNearBudgetLimit(currentSpend, limitAmount);
         const overHistorical = isOverHistoricalAverage(currentSpend, average);
@@ -84,11 +106,15 @@ export function BudgetList({
             </div>
 
             {limitAmount !== null && (
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
+              <div className="relative h-5 w-full overflow-hidden rounded-full bg-surface-hover">
                 <div
                   className={`h-full ${over ? "bg-danger" : near ? "bg-warning" : "bg-brand"}`}
                   style={{ width: `${progress * 100}%` }}
                 />
+                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-medium text-foreground">
+                  {currencyFormatter.format(currentSpend)} / {currencyFormatter.format(limitAmount)} (
+                  {Math.round(progress * 100)}%)
+                </span>
               </div>
             )}
 
@@ -101,9 +127,22 @@ export function BudgetList({
               </p>
             )}
 
+            {suggested !== null && drafts[category.id] === undefined && (
+              <p className="text-xs text-muted">
+                Sugestão baseada na média dos últimos meses. Ajuste e salve, ou salve como está.
+              </p>
+            )}
+
             <div className="flex items-center gap-2">
               <input
-                value={drafts[category.id] ?? (limitAmount !== null ? String(limitAmount) : "")}
+                value={
+                  drafts[category.id] ??
+                  (limitAmount !== null
+                    ? String(limitAmount)
+                    : suggested !== null
+                      ? String(suggested)
+                      : "")
+                }
                 onChange={(e) =>
                   setDrafts((prev) => ({ ...prev, [category.id]: e.target.value }))
                 }
@@ -117,6 +156,15 @@ export function BudgetList({
               >
                 Salvar
               </button>
+              {budget && (
+                <button
+                  type="button"
+                  onClick={() => handleDelete(budget.id, category.id)}
+                  className="rounded-lg border border-border px-2 py-1 text-xs text-danger hover:bg-danger-soft"
+                >
+                  Remover
+                </button>
+              )}
             </div>
           </div>
         );

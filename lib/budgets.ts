@@ -62,6 +62,11 @@ export async function upsertBudget(
   return fromRow(data);
 }
 
+export async function deleteBudget(supabase: SupabaseClient, budgetId: string): Promise<void> {
+  const { error } = await supabase.from("budgets").delete().eq("id", budgetId);
+  if (error) throw error;
+}
+
 export function isOverBudget(currentSpend: number, limitAmount: number | null): boolean {
   if (limitAmount === null) return false;
   return currentSpend > limitAmount;
