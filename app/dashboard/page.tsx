@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/card";
 import { MonthNav } from "@/components/month-nav";
-import { CategoryDonutChart } from "@/components/category-donut-chart";
+import { CategoryBreakdownChart } from "@/components/category-breakdown-chart";
 import {
   listTransactionsForMonth,
   buildMonthSummary,
@@ -75,25 +75,23 @@ export default async function DashboardPage({
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="min-h-64">
-          <h2 className="text-sm font-semibold text-foreground">
-            Gastos por categoria
-          </h2>
-          <div className="mt-4">
-            <CategoryDonutChart data={summary.porCategoria} />
-          </div>
-        </Card>
+      <Card className="min-h-64">
+        <h2 className="text-sm font-semibold text-foreground">
+          Gastos por categoria
+        </h2>
+        <div className="mt-4">
+          <CategoryBreakdownChart data={summary.porCategoria} />
+        </div>
+      </Card>
 
-        <Card className="min-h-64">
-          <h2 className="text-sm font-semibold text-foreground">
-            Alertas de orçamento
-          </h2>
-          <div className="mt-4 flex h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted">
-            Nenhum orçamento configurado ainda
-          </div>
-        </Card>
-      </div>
+      <Card className="min-h-64">
+        <h2 className="text-sm font-semibold text-foreground">
+          Alertas de orçamento
+        </h2>
+        <div className="mt-4 flex h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted">
+          Nenhum orçamento configurado ainda
+        </div>
+      </Card>
     </div>
   );
 }
