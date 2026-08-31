@@ -51,70 +51,105 @@ function BudgetIcon() {
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", enabled: true, icon: DashboardIcon },
   { label: "Importar extrato", href: "/dashboard/importar", enabled: true, icon: ImportIcon },
-  { label: "Transações", href: "#", enabled: false, icon: TransactionsIcon },
+  { label: "Transações", href: "/dashboard/transacoes", enabled: true, icon: TransactionsIcon },
   { label: "Categorias", href: "/dashboard/categorias", enabled: true, icon: CategoriesIcon },
   { label: "Orçamento", href: "#", enabled: false, icon: BudgetIcon },
 ] as const;
 
 export function Sidebar({ userEmail }: { userEmail: string | null }) {
   const pathname = usePathname();
+  const enabledItems = NAV_ITEMS.filter((item) => item.enabled);
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col justify-between border-r border-sidebar-border bg-sidebar px-4 py-5">
-      <div>
-        <div className="px-1 pb-6">
-          <Logo />
-        </div>
-
-        <nav className="flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => {
-            const isActive = item.enabled && pathname === item.href;
-            const Icon = item.icon;
-
-            if (!item.enabled) {
-              return (
-                <span
-                  key={item.label}
-                  className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-sidebar-foreground-muted/60"
-                >
-                  <span className="flex items-center gap-2.5">
-                    <Icon />
-                    {item.label}
-                  </span>
-                  <span className="rounded-full bg-sidebar-active px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-sidebar-foreground-muted">
-                    Em breve
-                  </span>
-                </span>
-              );
-            }
-
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-sidebar-active text-sidebar-foreground"
-                    : "text-sidebar-foreground-muted hover:bg-sidebar-active hover:text-sidebar-foreground"
-                }`}
-              >
-                <Icon />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-
-      <div className="flex flex-col gap-3 border-t border-sidebar-border pt-4">
-        <div className="flex items-center justify-between px-1">
-          <span className="truncate text-xs text-sidebar-foreground-muted">
-            {userEmail}
-          </span>
+    <>
+      <div className="flex items-center justify-between border-b border-sidebar-border bg-sidebar px-4 py-3 md:hidden">
+        <Logo />
+        <div className="flex items-center gap-2">
           <ThemeToggle />
+          <div className="shrink-0">
+            <LogoutButton />
+          </div>
         </div>
-        <LogoutButton />
       </div>
-    </aside>
+
+      <aside className="hidden h-full w-64 shrink-0 flex-col justify-between border-r border-sidebar-border bg-sidebar px-4 py-5 md:flex">
+        <div>
+          <div className="px-1 pb-6">
+            <Logo />
+          </div>
+
+          <nav className="flex flex-col gap-1">
+            {NAV_ITEMS.map((item) => {
+              const isActive = item.enabled && pathname === item.href;
+              const Icon = item.icon;
+
+              if (!item.enabled) {
+                return (
+                  <span
+                    key={item.label}
+                    className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-sidebar-foreground-muted/60"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Icon />
+                      {item.label}
+                    </span>
+                    <span className="rounded-full bg-sidebar-active px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-sidebar-foreground-muted">
+                      Em breve
+                    </span>
+                  </span>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-sidebar-active text-sidebar-foreground"
+                      : "text-sidebar-foreground-muted hover:bg-sidebar-active hover:text-sidebar-foreground"
+                  }`}
+                >
+                  <Icon />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-sidebar-border pt-4">
+          <div className="flex items-center justify-between px-1">
+            <span className="truncate text-xs text-sidebar-foreground-muted">
+              {userEmail}
+            </span>
+            <ThemeToggle />
+          </div>
+          <LogoutButton />
+        </div>
+      </aside>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-sidebar-border bg-sidebar px-1 py-1.5 md:hidden">
+        {enabledItems.map((item) => {
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[11px] font-medium transition-colors ${
+                isActive
+                  ? "text-sidebar-foreground"
+                  : "text-sidebar-foreground-muted"
+              }`}
+            >
+              <Icon />
+              <span className="truncate">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </>
   );
 }
