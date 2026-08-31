@@ -75,7 +75,7 @@ export default async function DashboardPage({
         ))}
       </div>
 
-      <Card className="min-h-64">
+      <Card className="min-h-80">
         <h2 className="text-sm font-semibold text-foreground">
           Gastos por categoria
         </h2>
