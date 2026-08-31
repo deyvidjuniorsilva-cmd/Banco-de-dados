@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/card";
 import { MonthNav } from "@/components/month-nav";
 import { CategoryBreakdownChart } from "@/components/category-breakdown-chart";
+import { MobileBalanceSummary } from "@/components/mobile-balance-summary";
 import {
   listTransactionsForMonth,
   buildMonthSummary,
@@ -55,7 +56,9 @@ export default async function DashboardPage({
         <MonthNav pathname="/dashboard" year={year} month={month} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <MobileBalanceSummary cards={summaryCards} />
+
+      <div className="hidden grid-cols-1 gap-4 md:grid md:grid-cols-3">
         {summaryCards.map((card) => (
           <Card key={card.label} href={card.href}>
             <p className="text-sm text-muted">{card.label}</p>
