@@ -77,6 +77,25 @@ export function buildMonthSummary(transactions: DashboardTransaction[]): MonthSu
   };
 }
 
+export function previousMonths(
+  year: number,
+  month: number,
+  count: number
+): { year: number; month: number }[] {
+  const result: { year: number; month: number }[] = [];
+  let y = year;
+  let m = month;
+  for (let i = 0; i < count; i++) {
+    m -= 1;
+    if (m === 0) {
+      m = 12;
+      y -= 1;
+    }
+    result.unshift({ year: y, month: m });
+  }
+  return result;
+}
+
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
 }
@@ -122,4 +141,19 @@ export async function listTransactionsForMonth(
       categoryName: category?.name ?? null,
     };
   });
+}
+
+export async function listCategoryTotalsForMonths(
+  supabase: SupabaseClient,
+  year: number,
+  month: number,
+  count: number
+): Promise<CategoryTotal[][]> {
+  const months = previousMonths(year, month, count);
+  const results: CategoryTotal[][] = [];
+  for (const m of months) {
+    const transactions = await listTransactionsForMonth(supabase, m.year, m.month);
+    results.push(buildMonthSummary(transactions).porCategoria);
+  }
+  return results;
 }
