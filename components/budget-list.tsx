@@ -12,8 +12,7 @@ import {
 } from "@/lib/budgets";
 import { errorMessage } from "@/lib/errors";
 import { currencyFormatter } from "@/lib/format";
-import type { DailyCumulativePoint } from "@/lib/dashboard";
-import { BudgetProgressChart } from "@/components/budget-progress-chart";
+import { BudgetOverviewChart } from "@/components/budget-overview-chart";
 
 interface BudgetListProps {
   year: number;
@@ -22,8 +21,6 @@ interface BudgetListProps {
   initialBudgets: Budget[];
   currentSpendByCategory: Record<string, number>;
   historicalAverageByCategory: Record<string, number>;
-  dailySeriesByCategory: Record<string, DailyCumulativePoint[]>;
-  daysInMonth: number;
 }
 
 export function BudgetList({
@@ -33,8 +30,6 @@ export function BudgetList({
   initialBudgets,
   currentSpendByCategory,
   historicalAverageByCategory,
-  dailySeriesByCategory,
-  daysInMonth,
 }: BudgetListProps) {
   const supabase = createClient();
   const [budgets, setBudgets] = useState<Budget[]>(initialBudgets);
@@ -82,14 +77,23 @@ export function BudgetList({
     }
   }
 
+  const overviewRows = categories.map((category) => ({
+    categoryId: category.id,
+    categoryName: category.name,
+    spend: currentSpendByCategory[category.id] ?? 0,
+    limitAmount: budgetFor(category.id)?.limitAmount ?? null,
+  }));
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       {error && (
         <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>
       )}
       {categories.length === 0 && (
         <p className="text-sm text-muted">Nenhuma categoria cadastrada ainda.</p>
       )}
+      {categories.length > 0 && <BudgetOverviewChart rows={overviewRows} />}
+      <div className="flex flex-col gap-2">
       {categories.map((category) => {
         const budget = budgetFor(category.id);
         const currentSpend = currentSpendByCategory[category.id] ?? 0;
@@ -109,13 +113,6 @@ export function BudgetList({
               <span className="font-medium text-foreground">{category.name}</span>
               <span className="text-muted">{currencyFormatter.format(currentSpend)}</span>
             </div>
-
-            <BudgetProgressChart
-              series={dailySeriesByCategory[category.id] ?? []}
-              daysInMonth={daysInMonth}
-              limitAmount={limitAmount}
-              over={over}
-            />
 
             {(over || near || overHistorical) && (
               <p className={`text-xs ${over || overHistorical ? "text-danger" : "text-warning"}`}>
@@ -168,6 +165,7 @@ export function BudgetList({
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

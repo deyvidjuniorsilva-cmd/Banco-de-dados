@@ -12,7 +12,6 @@ import {
   buildMonthSummary,
   resolveMonthParams,
   listCategoryTotalsForMonths,
-  buildDailyCumulativeByCategory,
 } from "@/lib/dashboard";
 import { listCategories } from "@/lib/categories";
 import { listBudgetsForMonth, isOverBudget } from "@/lib/budgets";
@@ -38,8 +37,6 @@ export default async function DashboardPage({
 
   const summary = buildMonthSummary(transactions);
   const monthQuery = `?ano=${year}&mes=${month}`;
-  const dailySeriesByCategory = buildDailyCumulativeByCategory(transactions, year, month);
-  const daysInMonth = new Date(year, month, 0).getDate();
 
   const forecasts = computeCategoryForecasts(monthlyHistory);
   const savingsSuggestions = rankSavingsSuggestions(forecasts, monthlyHistory);
@@ -144,8 +141,6 @@ export default async function DashboardPage({
             initialBudgets={budgets}
             currentSpendByCategory={currentSpendByCategory}
             historicalAverageByCategory={historicalAverageByCategory}
-            dailySeriesByCategory={dailySeriesByCategory}
-            daysInMonth={daysInMonth}
           />
         </div>
       </Card>
