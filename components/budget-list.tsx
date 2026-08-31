@@ -12,6 +12,8 @@ import {
 } from "@/lib/budgets";
 import { errorMessage } from "@/lib/errors";
 import { currencyFormatter } from "@/lib/format";
+import type { DailyCumulativePoint } from "@/lib/dashboard";
+import { BudgetProgressChart } from "@/components/budget-progress-chart";
 
 interface BudgetListProps {
   year: number;
@@ -20,6 +22,8 @@ interface BudgetListProps {
   initialBudgets: Budget[];
   currentSpendByCategory: Record<string, number>;
   historicalAverageByCategory: Record<string, number>;
+  dailySeriesByCategory: Record<string, DailyCumulativePoint[]>;
+  daysInMonth: number;
 }
 
 export function BudgetList({
@@ -29,6 +33,8 @@ export function BudgetList({
   initialBudgets,
   currentSpendByCategory,
   historicalAverageByCategory,
+  dailySeriesByCategory,
+  daysInMonth,
 }: BudgetListProps) {
   const supabase = createClient();
   const [budgets, setBudgets] = useState<Budget[]>(initialBudgets);
@@ -93,7 +99,6 @@ export function BudgetList({
         const over = isOverBudget(currentSpend, limitAmount);
         const near = !over && isNearBudgetLimit(currentSpend, limitAmount);
         const overHistorical = isOverHistoricalAverage(currentSpend, average);
-        const progress = limitAmount ? Math.min(currentSpend / limitAmount, 1) : 0;
 
         return (
           <div
@@ -105,18 +110,12 @@ export function BudgetList({
               <span className="text-muted">{currencyFormatter.format(currentSpend)}</span>
             </div>
 
-            {limitAmount !== null && (
-              <div className="relative h-5 w-full overflow-hidden rounded-full bg-surface-hover">
-                <div
-                  className={`h-full ${over ? "bg-danger" : near ? "bg-warning" : "bg-brand"}`}
-                  style={{ width: `${progress * 100}%` }}
-                />
-                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-medium text-foreground">
-                  {currencyFormatter.format(currentSpend)} / {currencyFormatter.format(limitAmount)} (
-                  {Math.round(progress * 100)}%)
-                </span>
-              </div>
-            )}
+            <BudgetProgressChart
+              series={dailySeriesByCategory[category.id] ?? []}
+              daysInMonth={daysInMonth}
+              limitAmount={limitAmount}
+              over={over}
+            />
 
             {(over || near || overHistorical) && (
               <p className={`text-xs ${over || overHistorical ? "text-danger" : "text-warning"}`}>

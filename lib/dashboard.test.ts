@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { resolveMonthParams, buildMonthSummary, previousMonths, type DashboardTransaction } from "./dashboard";
+import {
+  resolveMonthParams,
+  buildMonthSummary,
+  previousMonths,
+  buildDailyCumulativeByCategory,
+  type DashboardTransaction,
+} from "./dashboard";
 
 describe("resolveMonthParams", () => {
   it("usa o mês atual quando não há parâmetros", () => {
@@ -124,6 +130,89 @@ describe("buildMonthSummary", () => {
       { categoryId: "cat-mercado", categoryName: "Mercado", total: 300 },
       { categoryId: "cat-transporte", categoryName: "Transporte", total: 35 },
     ]);
+  });
+});
+
+describe("buildDailyCumulativeByCategory", () => {
+  it("returns an empty map for a month with no transactions", () => {
+    expect(buildDailyCumulativeByCategory([], 2026, 8)).toEqual({});
+  });
+
+  it("accumulates same-category spend across days, carrying the total forward on days with no spend", () => {
+    const transactions: DashboardTransaction[] = [
+      {
+        id: "1",
+        occurredOn: "2026-08-01",
+        description: "Mercado",
+        amount: 100,
+        direction: "saida",
+        categoryId: "cat-mercado",
+        categoryName: "Mercado",
+      },
+      {
+        id: "2",
+        occurredOn: "2026-08-03",
+        description: "Mercado",
+        amount: 50,
+        direction: "saida",
+        categoryId: "cat-mercado",
+        categoryName: "Mercado",
+      },
+    ];
+
+    const result = buildDailyCumulativeByCategory(transactions, 2026, 8);
+
+    expect(result["cat-mercado"][0]).toEqual({ day: 1, cumulative: 100 });
+    expect(result["cat-mercado"][1]).toEqual({ day: 2, cumulative: 100 });
+    expect(result["cat-mercado"][2]).toEqual({ day: 3, cumulative: 150 });
+    expect(result["cat-mercado"]).toHaveLength(31);
+  });
+
+  it("keeps categories separate and ignores income transactions", () => {
+    const transactions: DashboardTransaction[] = [
+      {
+        id: "1",
+        occurredOn: "2026-02-05",
+        description: "Salário",
+        amount: 5000,
+        direction: "entrada",
+        categoryId: null,
+        categoryName: null,
+      },
+      {
+        id: "2",
+        occurredOn: "2026-02-05",
+        description: "Farmácia",
+        amount: 40,
+        direction: "saida",
+        categoryId: "cat-farmacia",
+        categoryName: "Farmácia",
+      },
+    ];
+
+    const result = buildDailyCumulativeByCategory(transactions, 2026, 2);
+
+    expect(Object.keys(result)).toEqual(["cat-farmacia"]);
+    expect(result["cat-farmacia"]).toHaveLength(28);
+    expect(result["cat-farmacia"][4]).toEqual({ day: 5, cumulative: 40 });
+  });
+
+  it("groups uncategorized spend under 'sem-categoria'", () => {
+    const transactions: DashboardTransaction[] = [
+      {
+        id: "1",
+        occurredOn: "2026-08-10",
+        description: "Compra avulsa",
+        amount: 20,
+        direction: "saida",
+        categoryId: null,
+        categoryName: null,
+      },
+    ];
+
+    const result = buildDailyCumulativeByCategory(transactions, 2026, 8);
+
+    expect(result["sem-categoria"][9]).toEqual({ day: 10, cumulative: 20 });
   });
 });
 

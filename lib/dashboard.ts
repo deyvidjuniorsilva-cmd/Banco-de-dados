@@ -143,6 +143,42 @@ export async function listTransactionsForMonth(
   });
 }
 
+export interface DailyCumulativePoint {
+  day: number;
+  cumulative: number;
+}
+
+export function buildDailyCumulativeByCategory(
+  transactions: DashboardTransaction[],
+  year: number,
+  month: number
+): Record<string, DailyCumulativePoint[]> {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const dailyAmounts = new Map<string, number[]>();
+
+  for (const transaction of transactions) {
+    if (transaction.direction !== "saida") continue;
+    const key = transaction.categoryId ?? "sem-categoria";
+    const day = Number(transaction.occurredOn.slice(8, 10));
+    let amounts = dailyAmounts.get(key);
+    if (!amounts) {
+      amounts = new Array(daysInMonth).fill(0);
+      dailyAmounts.set(key, amounts);
+    }
+    amounts[day - 1] += transaction.amount;
+  }
+
+  const result: Record<string, DailyCumulativePoint[]> = {};
+  for (const [key, amounts] of dailyAmounts) {
+    let cumulative = 0;
+    result[key] = amounts.map((amount, index) => {
+      cumulative += amount;
+      return { day: index + 1, cumulative };
+    });
+  }
+  return result;
+}
+
 export async function listCategoryTotalsForMonths(
   supabase: SupabaseClient,
   year: number,
