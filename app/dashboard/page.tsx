@@ -16,7 +16,7 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ano?: string; mes?: string }>;
+  searchParams: Promise<{ ano?: string | string[]; mes?: string | string[] }>;
 }) {
   const { year, month } = resolveMonthParams(await searchParams);
   const supabase = await createClient();

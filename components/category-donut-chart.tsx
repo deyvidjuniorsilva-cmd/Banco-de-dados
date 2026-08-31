@@ -47,7 +47,7 @@ export function CategoryDonutChart({ data }: { data: CategoryTotal[] }) {
               />
             ))}
           </Pie>
-          <Tooltip formatter={(value: number) => currencyFormatter.format(value)} />
+          <Tooltip formatter={(value) => currencyFormatter.format(Number(value ?? 0))} />
         </PieChart>
       </ResponsiveContainer>
     </div>

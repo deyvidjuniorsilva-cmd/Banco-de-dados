@@ -7,7 +7,7 @@ import { listTransactionsForMonth, resolveMonthParams } from "@/lib/dashboard";
 export default async function ReceitasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ano?: string; mes?: string }>;
+  searchParams: Promise<{ ano?: string | string[]; mes?: string | string[] }>;
 }) {
   const { year, month } = resolveMonthParams(await searchParams);
   const supabase = await createClient();
@@ -20,7 +20,7 @@ export default async function ReceitasPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <Link
-            href="/dashboard"
+            href={`/dashboard?ano=${year}&mes=${month}`}
             className="text-sm text-muted transition-colors hover:text-brand"
           >
             ← Voltar ao dashboard

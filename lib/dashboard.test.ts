@@ -12,6 +12,24 @@ describe("resolveMonthParams", () => {
     const result = resolveMonthParams({ ano: "2026", mes: "3" });
     expect(result).toEqual({ year: 2026, month: 3 });
   });
+
+  it("usa o mês atual quando mes está fora do intervalo válido (mes=13)", () => {
+    const now = new Date();
+    const result = resolveMonthParams({ ano: "2026", mes: "13" });
+    expect(result).toEqual({ year: 2026, month: now.getMonth() + 1 });
+  });
+
+  it("usa o ano atual quando ano não é numérico (ano=abc)", () => {
+    const now = new Date();
+    const result = resolveMonthParams({ ano: "abc", mes: "3" });
+    expect(result).toEqual({ year: now.getFullYear(), month: 3 });
+  });
+
+  it("usa o mês atual quando mes é zero (mes=0)", () => {
+    const now = new Date();
+    const result = resolveMonthParams({ ano: "2026", mes: "0" });
+    expect(result).toEqual({ year: 2026, month: now.getMonth() + 1 });
+  });
 });
 
 describe("buildMonthSummary", () => {

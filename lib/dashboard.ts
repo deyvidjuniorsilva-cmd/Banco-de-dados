@@ -24,12 +24,19 @@ export interface MonthSummary {
 }
 
 export function resolveMonthParams(searchParams: {
-  ano?: string;
-  mes?: string;
+  ano?: string | string[];
+  mes?: string | string[];
 }): { year: number; month: number } {
   const now = new Date();
-  const year = searchParams.ano ? parseInt(searchParams.ano, 10) : now.getFullYear();
-  const month = searchParams.mes ? parseInt(searchParams.mes, 10) : now.getMonth() + 1;
+  const anoValue = Array.isArray(searchParams.ano) ? searchParams.ano[0] : searchParams.ano;
+  const mesValue = Array.isArray(searchParams.mes) ? searchParams.mes[0] : searchParams.mes;
+  const parsedYear = anoValue ? parseInt(anoValue, 10) : NaN;
+  const parsedMonth = mesValue ? parseInt(mesValue, 10) : NaN;
+  const year = Number.isInteger(parsedYear) && parsedYear > 0 ? parsedYear : now.getFullYear();
+  const month =
+    Number.isInteger(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12
+      ? parsedMonth
+      : now.getMonth() + 1;
   return { year, month };
 }
 
@@ -91,21 +98,28 @@ export async function listTransactionsForMonth(
     .order("occurred_on", { ascending: false });
   if (error) throw error;
 
-  return data.map((row: {
+  type TransactionRow = {
     id: string;
     occurred_on: string;
     description: string;
     amount: number;
     direction: "entrada" | "saida";
     category_id: string | null;
-    categories: { name: string } | null;
-  }) => ({
-    id: row.id,
-    occurredOn: row.occurred_on,
-    description: row.description,
-    amount: row.amount,
-    direction: row.direction,
-    categoryId: row.category_id,
-    categoryName: row.categories?.name ?? null,
-  }));
+    categories: { name: string } | { name: string }[] | null;
+  };
+
+  const rows = (data ?? []) as unknown as TransactionRow[];
+
+  return rows.map((row) => {
+    const category = Array.isArray(row.categories) ? row.categories[0] : row.categories;
+    return {
+      id: row.id,
+      occurredOn: row.occurred_on,
+      description: row.description,
+      amount: row.amount,
+      direction: row.direction,
+      categoryId: row.category_id,
+      categoryName: category?.name ?? null,
+    };
+  });
 }
