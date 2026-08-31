@@ -91,8 +91,9 @@ export function CategoryBreakdownChart({ data }: { data: CategoryTotal[] }) {
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row">
-      <div className="h-80 lg:w-3/5">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="flex h-80 flex-col lg:w-3/5">
+        <div className="min-h-0 flex-1">
+          <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis
@@ -148,8 +149,9 @@ export function CategoryBreakdownChart({ data }: { data: CategoryTotal[] }) {
               dot={{ r: 3, fill: "var(--danger)" }}
             />
           </ComposedChart>
-        </ResponsiveContainer>
-        <div className="mt-2 flex items-center gap-4 text-xs text-muted">
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-1 flex shrink-0 items-center justify-center gap-4 text-xs text-muted">
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-2 w-2 rounded-sm" style={{ background: "var(--brand)" }} />
             % por categoria
