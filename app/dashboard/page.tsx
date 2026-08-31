@@ -7,11 +7,7 @@ import {
   buildMonthSummary,
   resolveMonthParams,
 } from "@/lib/dashboard";
-
-const currencyFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
+import { currencyFormatter } from "@/lib/format";
 
 export default async function DashboardPage({
   searchParams,

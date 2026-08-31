@@ -11,11 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import type { CategoryTotal } from "@/lib/dashboard";
-
-const currencyFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
+import { currencyFormatter } from "@/lib/format";
 
 const percentFormatter = new Intl.NumberFormat("pt-BR", {
   style: "percent",
