@@ -7,10 +7,11 @@ import { listCategories, createCategory, type Category } from "@/lib/categories"
 import { listCategoryRules } from "@/lib/category-rules";
 import { matchCategory } from "@/lib/categorization";
 import type { ParsedTransaction } from "@/lib/parsers/types";
+import { listTransactionsForAccount, markDuplicateRows, type DuplicateCheckedRow } from "@/lib/transactions";
 import { confirmarImport } from "./confirm-action";
 import { errorMessage } from "@/lib/errors";
 
-interface Row extends ParsedTransaction {
+interface Row extends DuplicateCheckedRow {
   categoryId: string | null;
 }
 
@@ -28,7 +29,7 @@ export function ReviewTable({
   const router = useRouter();
   const supabase = createClient();
   const [rows, setRows] = useState<Row[]>(
-    initialTransactions.map((t) => ({ ...t, categoryId: null }))
+    initialTransactions.map((t) => ({ ...t, categoryId: null, possibleDuplicate: false, included: true }))
   );
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -38,21 +39,19 @@ export function ReviewTable({
   useEffect(() => {
     async function loadCategorizationData() {
       try {
-        const [categoryList, ruleList] = await Promise.all([
+        const [categoryList, ruleList, existingTransactions] = await Promise.all([
           listCategories(supabase),
           listCategoryRules(supabase),
+          listTransactionsForAccount(supabase, accountId),
         ]);
         setCategories(categoryList);
-        setRows((prev) =>
-          prev.map((row) =>
-            row.categoryId
-              ? row
-              : {
-                  ...row,
-                  categoryId: matchCategory(row.description, ruleList),
-                }
-          )
-        );
+        setRows((prev) => {
+          const withDuplicateFlags = markDuplicateRows(prev, existingTransactions);
+          return withDuplicateFlags.map((row, i) => ({
+            ...row,
+            categoryId: prev[i].categoryId ?? matchCategory(row.description, ruleList),
+          }));
+        });
       } catch (err) {
         setError(`Falha ao carregar categorias: ${errorMessage(err)}`);
       }
@@ -80,6 +79,8 @@ export function ReviewTable({
         amount: 0,
         direction: "saida",
         categoryId: null,
+        possibleDuplicate: false,
+        included: true,
       },
     ]);
   }
@@ -99,7 +100,7 @@ export function ReviewTable({
     setSaving(true);
     setError(null);
     try {
-      const response = await confirmarImport(importId, accountId, rows);
+      const response = await confirmarImport(importId, accountId, rows.filter((r) => r.included));
       if ("error" in response) {
         setError(response.error);
         return;
@@ -149,6 +150,7 @@ export function ReviewTable({
         <table className="w-full text-sm">
           <thead className="bg-surface-hover text-left text-muted">
             <tr>
+              <th className="p-2">Incluir</th>
               <th className="p-2">Data</th>
               <th className="p-2">Descrição</th>
               <th className="p-2">Valor</th>
@@ -160,6 +162,13 @@ export function ReviewTable({
           <tbody>
             {rows.map((row, index) => (
               <tr key={index} className="border-t border-border">
+                <td className="p-2">
+                  <input
+                    type="checkbox"
+                    checked={row.included}
+                    onChange={(e) => updateRow(index, { included: e.target.checked })}
+                  />
+                </td>
                 <td className="p-2">
                   <input
                     type="date"
@@ -176,6 +185,11 @@ export function ReviewTable({
                     }
                     className="w-64 rounded border border-border bg-background px-2 py-1"
                   />
+                  {row.possibleDuplicate && (
+                    <p className="mt-1 text-xs text-warning">
+                      Possível duplicata — já lançado antes
+                    </p>
+                  )}
                 </td>
                 <td className="p-2">
                   <input
