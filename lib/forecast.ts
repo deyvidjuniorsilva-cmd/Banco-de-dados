@@ -17,7 +17,7 @@ export interface SavingsSuggestion {
 export function computeCategoryForecasts(
   monthlyTotals: CategoryTotal[][]
 ): CategoryForecast[] {
-  if (monthlyTotals.length < 2) return [];
+  if (monthlyTotals.filter((m) => m.length > 0).length < 2) return [];
 
   const monthCount = monthlyTotals.length;
   const sums = new Map<string, { categoryId: string | null; categoryName: string; sum: number }>();

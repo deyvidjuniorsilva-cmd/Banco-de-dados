@@ -11,6 +11,15 @@ describe("computeCategoryForecasts", () => {
     expect(computeCategoryForecasts([])).toEqual([]);
   });
 
+  it("returns an empty array when only 1 of 3 month buckets actually has data", () => {
+    const history: CategoryTotal[][] = [
+      [],
+      [],
+      [{ categoryId: "x", categoryName: "Mercado", total: 900 }],
+    ];
+    expect(computeCategoryForecasts(history)).toEqual([]);
+  });
+
   it("averages a category present in every month", () => {
     const history: CategoryTotal[][] = [
       [{ categoryId: "cat-1", categoryName: "Mercado", total: 300 }],

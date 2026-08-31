@@ -132,7 +132,7 @@ export default async function DashboardPage({
 
       <Card className="min-h-64">
         <h2 className="text-sm font-semibold text-foreground">
-          Previsão do próximo mês
+          Média dos últimos 3 meses
         </h2>
         <div className="mt-4">
           <ForecastCards forecasts={forecasts} budgetLimitByCategory={budgetLimitByCategory} />
