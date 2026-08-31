@@ -30,6 +30,37 @@ interface ChartRow {
   cumulativeShare: number;
 }
 
+const MAX_LABEL_LENGTH = 10;
+
+function truncateLabel(label: string): string {
+  return label.length > MAX_LABEL_LENGTH
+    ? `${label.slice(0, MAX_LABEL_LENGTH - 1)}…`
+    : label;
+}
+
+function CategoryTick({
+  x,
+  y,
+  payload,
+}: {
+  x?: number;
+  y?: number;
+  payload?: { value: string };
+}) {
+  return (
+    <text
+      x={x}
+      y={y}
+      dy={12}
+      textAnchor="middle"
+      fill="var(--muted)"
+      fontSize={11}
+    >
+      {truncateLabel(payload?.value ?? "")}
+    </text>
+  );
+}
+
 function buildRows(data: CategoryTotal[]): ChartRow[] {
   const totalGeral = data.reduce((sum, item) => sum + item.total, 0);
   let cumulative = 0;
@@ -66,13 +97,11 @@ export function CategoryBreakdownChart({ data }: { data: CategoryTotal[] }) {
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis
               dataKey="categoryName"
-              tick={{ fill: "var(--muted)", fontSize: 11 }}
+              tick={<CategoryTick />}
               tickLine={false}
               axisLine={{ stroke: "var(--border)" }}
               interval={0}
-              angle={-20}
-              textAnchor="end"
-              height={50}
+              height={30}
             />
             <YAxis
               tickFormatter={(value) => percentFormatter.format(Number(value))}
