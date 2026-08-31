@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveMonthParams, buildMonthSummary, type DashboardTransaction } from "./dashboard";
+import { resolveMonthParams, buildMonthSummary, previousMonths, type DashboardTransaction } from "./dashboard";
 
 describe("resolveMonthParams", () => {
   it("usa o mês atual quando não há parâmetros", () => {
@@ -124,5 +124,46 @@ describe("buildMonthSummary", () => {
       { categoryId: "cat-mercado", categoryName: "Mercado", total: 300 },
       { categoryId: "cat-transporte", categoryName: "Transporte", total: 35 },
     ]);
+  });
+});
+
+describe("previousMonths", () => {
+  it("returns the requested count of months before the given month, oldest first", () => {
+    expect(previousMonths(2026, 6, 3)).toEqual([
+      { year: 2026, month: 3 },
+      { year: 2026, month: 4 },
+      { year: 2026, month: 5 },
+    ]);
+  });
+
+  it("rolls over to the previous year", () => {
+    expect(previousMonths(2026, 2, 3)).toEqual([
+      { year: 2025, month: 11 },
+      { year: 2025, month: 12 },
+      { year: 2026, month: 1 },
+    ]);
+  });
+
+  it("rolls over across multiple years when count is large", () => {
+    expect(previousMonths(2026, 1, 14)).toEqual([
+      { year: 2024, month: 11 },
+      { year: 2024, month: 12 },
+      { year: 2025, month: 1 },
+      { year: 2025, month: 2 },
+      { year: 2025, month: 3 },
+      { year: 2025, month: 4 },
+      { year: 2025, month: 5 },
+      { year: 2025, month: 6 },
+      { year: 2025, month: 7 },
+      { year: 2025, month: 8 },
+      { year: 2025, month: 9 },
+      { year: 2025, month: 10 },
+      { year: 2025, month: 11 },
+      { year: 2025, month: 12 },
+    ]);
+  });
+
+  it("returns an empty array when count is 0", () => {
+    expect(previousMonths(2026, 6, 0)).toEqual([]);
   });
 });

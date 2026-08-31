@@ -3,16 +3,21 @@ import { Card } from "@/components/card";
 import { MonthNav } from "@/components/month-nav";
 import { CategoryBreakdownChart } from "@/components/category-breakdown-chart";
 import { MobileBalanceSummary } from "@/components/mobile-balance-summary";
+import { BudgetList } from "@/components/budget-list";
+import { ForecastCards } from "@/components/forecast-cards";
+import { SavingsSuggestions } from "@/components/savings-suggestions";
 import {
   listTransactionsForMonth,
   buildMonthSummary,
   resolveMonthParams,
+  listCategoryTotalsForMonths,
 } from "@/lib/dashboard";
+import { listCategories } from "@/lib/categories";
+import { listBudgetsForMonth } from "@/lib/budgets";
+import { computeCategoryForecasts, rankSavingsSuggestions } from "@/lib/forecast";
+import { currencyFormatter } from "@/lib/format";
 
-const currencyFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
+const FORECAST_HISTORY_MONTHS = 3;
 
 export default async function DashboardPage({
   searchParams,
@@ -21,9 +26,34 @@ export default async function DashboardPage({
 }) {
   const { year, month } = resolveMonthParams(await searchParams);
   const supabase = await createClient();
-  const transactions = await listTransactionsForMonth(supabase, year, month);
+
+  const [transactions, categories, budgets, monthlyHistory] = await Promise.all([
+    listTransactionsForMonth(supabase, year, month),
+    listCategories(supabase),
+    listBudgetsForMonth(supabase, year, month),
+    listCategoryTotalsForMonths(supabase, year, month, FORECAST_HISTORY_MONTHS),
+  ]);
+
   const summary = buildMonthSummary(transactions);
   const monthQuery = `?ano=${year}&mes=${month}`;
+
+  const forecasts = computeCategoryForecasts(monthlyHistory);
+  const savingsSuggestions = rankSavingsSuggestions(forecasts, monthlyHistory);
+
+  const currentSpendByCategory: Record<string, number> = {};
+  for (const entry of summary.porCategoria) {
+    if (entry.categoryId) currentSpendByCategory[entry.categoryId] = entry.total;
+  }
+
+  const historicalAverageByCategory: Record<string, number> = {};
+  for (const forecast of forecasts) {
+    if (forecast.categoryId) historicalAverageByCategory[forecast.categoryId] = forecast.forecast;
+  }
+
+  const budgetLimitByCategory: Record<string, number> = {};
+  for (const budget of budgets) {
+    budgetLimitByCategory[budget.categoryId] = budget.limitAmount;
+  }
 
   const summaryCards = [
     {
@@ -89,10 +119,35 @@ export default async function DashboardPage({
 
       <Card className="min-h-64">
         <h2 className="text-sm font-semibold text-foreground">
-          Alertas de orçamento
+          Orçamento por categoria
         </h2>
-        <div className="mt-4 flex h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted">
-          Nenhum orçamento configurado ainda
+        <div className="mt-4">
+          <BudgetList
+            year={year}
+            month={month}
+            categories={categories}
+            initialBudgets={budgets}
+            currentSpendByCategory={currentSpendByCategory}
+            historicalAverageByCategory={historicalAverageByCategory}
+          />
+        </div>
+      </Card>
+
+      <Card className="min-h-64">
+        <h2 className="text-sm font-semibold text-foreground">
+          Média dos últimos 3 meses
+        </h2>
+        <div className="mt-4">
+          <ForecastCards forecasts={forecasts} budgetLimitByCategory={budgetLimitByCategory} />
+        </div>
+      </Card>
+
+      <Card className="min-h-64">
+        <h2 className="text-sm font-semibold text-foreground">
+          Sugestões de economia
+        </h2>
+        <div className="mt-4">
+          <SavingsSuggestions suggestions={savingsSuggestions} />
         </div>
       </Card>
     </div>

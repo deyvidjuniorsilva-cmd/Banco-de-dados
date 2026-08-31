@@ -1,9 +1,5 @@
 import type { DashboardTransaction } from "@/lib/dashboard";
-
-const currencyFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
+import { currencyFormatter } from "@/lib/format";
 
 function formatDate(occurredOn: string): string {
   const [year, month, day] = occurredOn.split("-");
