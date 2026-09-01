@@ -46,6 +46,14 @@ describe("parseAccountSelection", () => {
   it("retorna null para um número fora do intervalo", () => {
     expect(parseAccountSelection("9", ACCOUNTS)).toBeNull();
   });
+
+  it("retorna null para uma resposta vazia", () => {
+    expect(parseAccountSelection("", ACCOUNTS)).toBeNull();
+  });
+
+  it("retorna null para uma resposta só com espaços", () => {
+    expect(parseAccountSelection("   ", ACCOUNTS)).toBeNull();
+  });
 });
 
 describe("buildConfirmationPrompt", () => {

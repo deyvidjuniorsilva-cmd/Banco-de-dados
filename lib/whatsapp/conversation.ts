@@ -39,6 +39,8 @@ export function parseAccountSelection(
   }
 
   const normalized = trimmed.toLowerCase();
+  if (!normalized) return null;
+
   const match = accounts.find((account) => account.name.toLowerCase().includes(normalized));
   return match ? match.id : null;
 }

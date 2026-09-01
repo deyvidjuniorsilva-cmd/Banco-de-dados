@@ -118,6 +118,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (pending.status === "aguardando_confirmacao") {
+      if (message.type !== "text") {
+        const { data: account } = await supabase
+          .from("accounts")
+          .select("name")
+          .eq("id", pending.account_id)
+          .maybeSingle();
+        await sendWhatsappText(
+          message.from,
+          buildConfirmationPrompt(receipt, account?.name ?? ""),
+          graphConfig
+        );
+        return NextResponse.json({ status: "reprompted_confirmation" });
+      }
+
       const decision = parseConfirmationReply(message.text ?? "");
 
       if (decision === "confirm") {
@@ -150,9 +164,19 @@ export async function POST(request: NextRequest) {
   }
 
   if (message.type === "image" || message.type === "document") {
-    const media = await downloadWhatsappMedia(message.mediaId!, accessToken);
-    const anthropic = new Anthropic({ apiKey: anthropicApiKey });
-    const extracted = await extractReceiptData(anthropic, media);
+    let extracted;
+    try {
+      const media = await downloadWhatsappMedia(message.mediaId!, accessToken);
+      const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+      extracted = await extractReceiptData(anthropic, media);
+    } catch {
+      await sendWhatsappText(
+        message.from,
+        "Não consegui ler esse comprovante. Pode mandar de novo, mais nítido?",
+        graphConfig
+      );
+      return NextResponse.json({ status: "extraction_error" });
+    }
 
     if (!extracted) {
       await sendWhatsappText(
