@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAnimatedNumber } from "@/lib/use-animated-number";
 
 const HIDE_VALUES_STORAGE_KEY = "js-conciliacao-hide-values";
@@ -51,10 +51,8 @@ function AnimatedValue({ value, hidden, className }: { value: number; hidden: bo
 }
 
 export function MobileBalanceSummary({ cards }: { cards: SummaryCardData[] }) {
-  const [balanceCard, ...carouselCards] = cards;
+  const [balanceCard, ...restCards] = cards;
   const [hidden, setHidden] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(HIDE_VALUES_STORAGE_KEY);
@@ -69,21 +67,14 @@ export function MobileBalanceSummary({ cards }: { cards: SummaryCardData[] }) {
     });
   }
 
-  function handleScroll() {
-    const el = scrollRef.current;
-    if (!el || el.clientWidth === 0) return;
-    const index = Math.round(el.scrollLeft / el.clientWidth);
-    setActiveIndex(index);
-  }
-
   return (
-    <div className="flex flex-col gap-3 md:hidden">
+    <div className="flex flex-col gap-4 md:hidden">
       <Link
         href={balanceCard.href}
-        className="block rounded-xl border border-border bg-surface p-5 transition-colors hover:border-brand hover:bg-surface-hover"
+        className="block rounded-2xl border border-brand/20 bg-gradient-to-br from-brand to-brand-hover p-5 text-brand-foreground shadow-[0_0_32px_var(--brand-glow)] transition-opacity hover:opacity-95"
       >
         <div className="flex items-center justify-between">
-          <p className="text-sm text-muted">{balanceCard.label}</p>
+          <p className="text-sm text-brand-foreground/80">{balanceCard.label}</p>
           <button
             type="button"
             onClick={(e) => {
@@ -91,49 +82,25 @@ export function MobileBalanceSummary({ cards }: { cards: SummaryCardData[] }) {
               toggleHidden();
             }}
             aria-label={hidden ? "Mostrar valores" : "Ocultar valores"}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-brand-foreground/80 transition-colors hover:bg-white/10 hover:text-brand-foreground"
           >
             <EyeIcon open={!hidden} />
           </button>
         </div>
-        <AnimatedValue
-          value={balanceCard.value}
-          hidden={hidden}
-          className={`mt-2 block text-3xl font-semibold ${toneClass(balanceCard.tone)}`}
-        />
-        <p className="mt-3 text-xs font-medium text-brand">Ver detalhes →</p>
+        <AnimatedValue value={balanceCard.value} hidden={hidden} className="mt-2 block font-mono text-3xl font-semibold tabular-nums" />
+        <p className="mt-3 text-xs font-medium text-brand-foreground/80">Ver detalhes →</p>
       </Link>
 
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {carouselCards.map((card) => (
+      <div className="grid grid-cols-2 gap-3">
+        {restCards.map((card) => (
           <Link
             key={card.label}
             href={card.href}
-            className="block w-[85%] shrink-0 snap-center rounded-xl border border-border bg-surface p-5 transition-colors hover:border-brand hover:bg-surface-hover"
+            className="block rounded-xl border border-glass-border bg-glass p-4 backdrop-blur-md transition-all duration-200 hover:border-brand hover:shadow-[0_0_20px_var(--brand-glow)]"
           >
-            <p className="text-sm text-muted">{card.label}</p>
-            <AnimatedValue
-              value={card.value}
-              hidden={hidden}
-              className={`mt-2 block text-2xl font-semibold ${toneClass(card.tone)}`}
-            />
-            <p className="mt-3 text-xs font-medium text-brand">Ver detalhes →</p>
+            <p className="text-xs text-muted">{card.label}</p>
+            <AnimatedValue value={card.value} hidden={hidden} className={`mt-1.5 block font-mono text-lg font-semibold tabular-nums ${toneClass(card.tone)}`} />
           </Link>
-        ))}
-      </div>
-
-      <div className="flex items-center justify-center gap-1.5">
-        {carouselCards.map((card, index) => (
-          <span
-            key={card.label}
-            className={`h-1.5 rounded-full transition-all ${
-              index === activeIndex ? "w-4 bg-brand" : "w-1.5 bg-border"
-            }`}
-          />
         ))}
       </div>
     </div>

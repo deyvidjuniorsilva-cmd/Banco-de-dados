@@ -6,6 +6,7 @@ import { updateTransactionCategory, deleteTransaction } from "@/lib/transactions
 import { errorMessage } from "@/lib/errors";
 import type { DashboardTransaction } from "@/lib/dashboard";
 import type { Category } from "@/lib/categories";
+import { groupByDay, initialsFor } from "@/lib/transaction-display";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -131,58 +132,109 @@ export function TransactionsExplorer({
           Nenhuma transação encontrada.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-surface-hover text-left text-muted">
-              <tr>
-                <th className="p-2">Data</th>
-                <th className="p-2">Descrição</th>
-                <th className="p-2">Categoria</th>
-                <th className="p-2">Valor</th>
-                <th className="p-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRows.map((row) => (
-                <tr key={row.id} className="border-t border-border">
-                  <td className="p-2 whitespace-nowrap">{formatDate(row.occurredOn)}</td>
-                  <td className="p-2">{row.description}</td>
-                  <td className="p-2">
-                    <select
-                      value={row.categoryId ?? ""}
-                      onChange={(e) => handleCategoryChange(row.id, e.target.value)}
-                      className="rounded-lg border border-border bg-background px-2 py-1 text-sm text-foreground"
-                    >
-                      <option value="">Sem categoria</option>
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td
-                    className={`p-2 whitespace-nowrap ${
-                      row.direction === "entrada" ? "text-success" : "text-danger"
-                    }`}
-                  >
-                    {row.direction === "saida" ? "-" : ""}
-                    {currencyFormatter.format(row.amount)}
-                  </td>
-                  <td className="p-2 text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(row.id)}
-                      className="rounded px-2 py-1 text-sm text-danger hover:bg-danger-soft"
-                    >
-                      Excluir
-                    </button>
-                  </td>
+        <>
+          <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-5 md:hidden">
+            {groupByDay(filteredRows).map((group) => (
+              <div key={group.label}>
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted">{group.label}</p>
+                <div className="mt-2 flex flex-col gap-3">
+                  {group.items.map((row) => (
+                    <div key={row.id} className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-hover text-[11px] font-semibold text-foreground">
+                        {initialsFor(row.description)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">{row.description}</p>
+                        <select
+                          value={row.categoryId ?? ""}
+                          onChange={(e) => handleCategoryChange(row.id, e.target.value)}
+                          className="mt-1 rounded-lg border border-border bg-background px-2 py-1 text-xs text-foreground"
+                        >
+                          <option value="">Sem categoria</option>
+                          {categories.map((category) => (
+                            <option key={category.id} value={category.id}>
+                              {category.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <p
+                          className={`text-sm font-semibold ${
+                            row.direction === "entrada" ? "text-success" : "text-danger"
+                          }`}
+                        >
+                          {row.direction === "saida" ? "-" : ""}
+                          {currencyFormatter.format(row.amount)}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(row.id)}
+                          className="text-xs text-danger hover:underline"
+                        >
+                          Excluir
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
+            <table className="w-full text-sm">
+              <thead className="bg-surface-hover text-left text-muted">
+                <tr>
+                  <th className="p-2">Data</th>
+                  <th className="p-2">Descrição</th>
+                  <th className="p-2">Categoria</th>
+                  <th className="p-2">Valor</th>
+                  <th className="p-2" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredRows.map((row) => (
+                  <tr key={row.id} className="border-t border-border">
+                    <td className="p-2 whitespace-nowrap">{formatDate(row.occurredOn)}</td>
+                    <td className="p-2">{row.description}</td>
+                    <td className="p-2">
+                      <select
+                        value={row.categoryId ?? ""}
+                        onChange={(e) => handleCategoryChange(row.id, e.target.value)}
+                        className="rounded-lg border border-border bg-background px-2 py-1 text-sm text-foreground"
+                      >
+                        <option value="">Sem categoria</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td
+                      className={`p-2 whitespace-nowrap ${
+                        row.direction === "entrada" ? "text-success" : "text-danger"
+                      }`}
+                    >
+                      {row.direction === "saida" ? "-" : ""}
+                      {currencyFormatter.format(row.amount)}
+                    </td>
+                    <td className="p-2 text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(row.id)}
+                        className="rounded px-2 py-1 text-sm text-danger hover:bg-danger-soft"
+                      >
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

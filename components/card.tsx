@@ -9,13 +9,13 @@ export function Card({
   className?: string;
   href?: string;
 }) {
-  const classes = `rounded-xl border border-border bg-surface p-5 ${className}`;
+  const classes = `rounded-xl border border-glass-border bg-glass p-5 backdrop-blur-md ${className}`;
 
   if (href) {
     return (
       <Link
         href={href}
-        className={`block transition-colors hover:border-brand hover:bg-surface-hover ${classes}`}
+        className={`block transition-all duration-200 hover:border-brand hover:shadow-[0_0_24px_var(--brand-glow)] ${classes}`}
       >
         {children}
       </Link>

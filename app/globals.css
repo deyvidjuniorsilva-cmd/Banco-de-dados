@@ -23,6 +23,11 @@
   --success-soft: #e7f7ed;
   --danger: #dc2626;
   --danger-soft: #fdeaea;
+
+  --brand-glow: rgba(37, 99, 235, 0.35);
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(37, 99, 235, 0.12);
+  --grid-line: rgba(37, 99, 235, 0.05);
 }
 
 :root[data-theme="dark"] {
@@ -74,7 +79,19 @@
     --success-soft: #0f2419;
     --danger: #f87171;
     --danger-soft: #2b1414;
+
+    --brand-glow: rgba(59, 130, 246, 0.45);
+    --glass-bg: rgba(17, 26, 48, 0.55);
+    --glass-border: rgba(59, 130, 246, 0.18);
+    --grid-line: rgba(59, 130, 246, 0.08);
   }
+}
+
+:root[data-theme="dark"] {
+  --brand-glow: rgba(59, 130, 246, 0.45);
+  --glass-bg: rgba(17, 26, 48, 0.55);
+  --glass-border: rgba(59, 130, 246, 0.18);
+  --grid-line: rgba(59, 130, 246, 0.08);
 }
 
 @theme inline {
@@ -101,11 +118,18 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
 
+  --color-brand-glow: var(--brand-glow);
+  --color-glass: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(ellipse 900px 500px at 0% 0%, var(--grid-line), transparent 60%),
+    var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
 }

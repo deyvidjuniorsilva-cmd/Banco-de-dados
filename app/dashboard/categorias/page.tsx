@@ -125,7 +125,7 @@ export default function CategoriasPage() {
           <button
             type="button"
             onClick={handleCreateCategory}
-            className="rounded-lg border border-border px-3 py-1.5 text-sm text-foreground hover:bg-surface-hover"
+            className="rounded-full border border-border px-4 py-1.5 text-sm font-medium text-foreground hover:bg-surface-hover"
           >
             + Adicionar categoria
           </button>
@@ -148,6 +148,9 @@ export default function CategoriasPage() {
               className="flex items-center justify-between rounded-lg border border-border px-3 py-2"
             >
               <div className="flex items-center gap-3 text-sm">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-hover text-[11px] font-semibold text-foreground">
+                  {rule.keyword.slice(0, 2).toUpperCase()}
+                </span>
                 <span className="font-medium text-foreground">
                   &quot;{rule.keyword}&quot;
                 </span>
@@ -210,7 +213,7 @@ export default function CategoriasPage() {
           <button
             type="button"
             onClick={handleCreateRule}
-            className="rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-brand-foreground hover:bg-brand-hover"
+            className="rounded-full bg-brand px-4 py-1.5 text-sm font-medium text-brand-foreground hover:bg-brand-hover"
           >
             + Adicionar regra
           </button>

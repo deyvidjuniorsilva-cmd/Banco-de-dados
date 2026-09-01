@@ -6,6 +6,30 @@ import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 import { LogoutButton } from "./logout-button";
 
+function greetingForHour(hour: number): string {
+  if (hour < 12) return "Bom dia";
+  if (hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+function MobileGreeting({ userEmail }: { userEmail: string | null }) {
+  const namePart = userEmail?.split("@")[0] ?? "visitante";
+  const initials = namePart.slice(0, 2).toUpperCase();
+  const greeting = greetingForHour(new Date().getHours());
+
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-brand-foreground">
+        {initials}
+      </span>
+      <div className="leading-tight">
+        <p className="text-[13px] font-semibold text-sidebar-foreground">Olá, {namePart}</p>
+        <p className="text-[11px] text-sidebar-foreground-muted">{greeting}</p>
+      </div>
+    </div>
+  );
+}
+
 function DashboardIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="h-4 w-4 shrink-0">
@@ -62,8 +86,8 @@ export function Sidebar({ userEmail }: { userEmail: string | null }) {
 
   return (
     <>
-      <div className="flex items-center justify-between border-b border-sidebar-border bg-sidebar px-4 py-3 md:hidden">
-        <Logo />
+      <div className="flex items-center justify-between border-b border-glass-border bg-glass px-4 py-3 backdrop-blur-md md:hidden">
+        <MobileGreeting userEmail={userEmail} />
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <div className="shrink-0">
@@ -72,7 +96,7 @@ export function Sidebar({ userEmail }: { userEmail: string | null }) {
         </div>
       </div>
 
-      <aside className="hidden h-full w-64 shrink-0 flex-col justify-between border-r border-sidebar-border bg-sidebar px-4 py-5 md:flex">
+      <aside className="hidden h-full w-64 shrink-0 flex-col justify-between border-r border-glass-border bg-glass px-4 py-5 backdrop-blur-md md:flex">
         <div>
           <div className="px-1 pb-6">
             <Logo />
@@ -104,9 +128,9 @@ export function Sidebar({ userEmail }: { userEmail: string | null }) {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? "bg-sidebar-active text-sidebar-foreground"
+                      ? "bg-gradient-to-r from-brand to-brand-hover text-brand-foreground shadow-[0_0_16px_var(--brand-glow)]"
                       : "text-sidebar-foreground-muted hover:bg-sidebar-active hover:text-sidebar-foreground"
                   }`}
                 >
@@ -118,7 +142,7 @@ export function Sidebar({ userEmail }: { userEmail: string | null }) {
           </nav>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-sidebar-border pt-4">
+        <div className="flex flex-col gap-3 border-t border-glass-border pt-4">
           <div className="flex items-center justify-between px-1">
             <span className="truncate text-xs text-sidebar-foreground-muted">
               {userEmail}
@@ -129,23 +153,22 @@ export function Sidebar({ userEmail }: { userEmail: string | null }) {
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-sidebar-border bg-sidebar px-1 py-1.5 md:hidden">
+      <nav className="fixed inset-x-0 bottom-4 z-40 mx-auto flex w-fit items-center gap-1 rounded-full border border-glass-border bg-glass px-2 py-2 shadow-lg backdrop-blur-md md:hidden">
         {enabledItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
 
           return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[11px] font-medium transition-colors ${
-                isActive
-                  ? "text-sidebar-foreground"
-                  : "text-sidebar-foreground-muted"
-              }`}
-            >
-              <Icon />
-              <span className="truncate">{item.label}</span>
+            <Link key={item.label} href={item.href} aria-label={item.label} className="flex items-center justify-center">
+              <span
+                className={`flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 ${
+                  isActive
+                    ? "bg-gradient-to-br from-brand to-brand-hover text-brand-foreground shadow-[0_0_12px_var(--brand-glow)]"
+                    : "text-sidebar-foreground-muted"
+                }`}
+              >
+                <Icon />
+              </span>
             </Link>
           );
         })}

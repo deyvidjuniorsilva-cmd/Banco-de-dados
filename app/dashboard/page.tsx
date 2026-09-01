@@ -3,6 +3,7 @@ import { Card } from "@/components/card";
 import { MonthNav } from "@/components/month-nav";
 import { CategoryBreakdownChart } from "@/components/category-breakdown-chart";
 import { MobileBalanceSummary } from "@/components/mobile-balance-summary";
+import { RecentTransactions } from "@/components/recent-transactions";
 import { BudgetList } from "@/components/budget-list";
 import { BudgetAlertsBanner, type OverBudgetEntry } from "@/components/budget-alerts-banner";
 import { ForecastCards } from "@/components/forecast-cards";
@@ -100,12 +101,14 @@ export default async function DashboardPage({
 
       <MobileBalanceSummary cards={summaryCards} />
 
+      <RecentTransactions transactions={transactions} seeAllHref={`/dashboard/transacoes${monthQuery}`} />
+
       <div className="hidden grid-cols-1 gap-4 md:grid md:grid-cols-3">
         {summaryCards.map((card) => (
           <Card key={card.label} href={card.href}>
             <p className="text-sm text-muted">{card.label}</p>
             <p
-              className={`mt-2 text-2xl font-semibold ${
+              className={`mt-2 font-mono text-2xl font-semibold tabular-nums ${
                 card.tone === "success"
                   ? "text-success"
                   : card.tone === "danger"
