@@ -13,4 +13,10 @@ describe("shouldRedirectToLogin", () => {
   it("não redireciona para a própria página de login", () => {
     expect(shouldRedirectToLogin({ hasUser: false, pathname: "/login" })).toBe(false);
   });
+
+  it("não redireciona o webhook do WhatsApp, que não tem sessão de usuário", () => {
+    expect(
+      shouldRedirectToLogin({ hasUser: false, pathname: "/api/whatsapp/webhook" })
+    ).toBe(false);
+  });
 });

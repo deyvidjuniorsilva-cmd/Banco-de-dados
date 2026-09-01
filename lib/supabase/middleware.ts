@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { requireEnv } from "./require-env";
 
 const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATH_PREFIXES = ["/api/whatsapp/webhook"];
 
 export function shouldRedirectToLogin({
   hasUser,
@@ -12,7 +13,8 @@ export function shouldRedirectToLogin({
   pathname: string;
 }): boolean {
   if (hasUser) return false;
-  return !PUBLIC_PATHS.includes(pathname);
+  if (PUBLIC_PATHS.includes(pathname)) return false;
+  return !PUBLIC_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
 export async function updateSession(request: NextRequest) {
