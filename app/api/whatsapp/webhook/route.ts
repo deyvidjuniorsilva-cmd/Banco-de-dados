@@ -92,7 +92,8 @@ export async function POST(request: NextRequest) {
         .eq("owner", ownerId)
         .order("created_at");
       const accountList = accounts ?? [];
-      const accountId = parseAccountSelection(message.text ?? "", accountList);
+      const accountId =
+        message.type === "text" ? parseAccountSelection(message.text ?? "", accountList) : null;
 
       if (!accountId) {
         await sendWhatsappText(message.from, buildAccountPrompt(receipt, accountList), graphConfig);
@@ -100,10 +101,18 @@ export async function POST(request: NextRequest) {
       }
 
       const account = accountList.find((a) => a.id === accountId)!;
-      await supabase
+      const { error: updatePendingError } = await supabase
         .from("whatsapp_pending_receipts")
         .update({ account_id: accountId, status: "aguardando_confirmacao" })
         .eq("id", pending.id);
+      if (updatePendingError) {
+        await sendWhatsappText(
+          message.from,
+          "Não consegui salvar sua escolha, tenta de novo em instantes.",
+          graphConfig
+        );
+        return NextResponse.json({ status: "update_pending_failed" });
+      }
       await sendWhatsappText(message.from, buildConfirmationPrompt(receipt, account.name), graphConfig);
       return NextResponse.json({ status: "confirmation_sent" });
     }
@@ -112,7 +121,7 @@ export async function POST(request: NextRequest) {
       const decision = parseConfirmationReply(message.text ?? "");
 
       if (decision === "confirm") {
-        await supabase.from("transactions").insert({
+        const { error: insertTransactionError } = await supabase.from("transactions").insert({
           owner: ownerId,
           account_id: pending.account_id,
           occurred_on: pending.extracted_date,
@@ -121,6 +130,14 @@ export async function POST(request: NextRequest) {
           direction: pending.extracted_direction,
           category_id: pending.category_id,
         });
+        if (insertTransactionError) {
+          await sendWhatsappText(
+            message.from,
+            "Não consegui salvar o lançamento, tenta de novo em instantes.",
+            graphConfig
+          );
+          return NextResponse.json({ status: "save_failed" });
+        }
         await supabase.from("whatsapp_pending_receipts").delete().eq("id", pending.id);
         await sendWhatsappText(message.from, "Lançado ✅", graphConfig);
         return NextResponse.json({ status: "launched" });
@@ -159,7 +176,7 @@ export async function POST(request: NextRequest) {
       (categoryRules ?? []).map((r) => ({ keyword: r.keyword, categoryId: r.category_id }))
     );
 
-    await supabase.from("whatsapp_pending_receipts").insert({
+    const { error: insertPendingError } = await supabase.from("whatsapp_pending_receipts").insert({
       owner: ownerId,
       phone: message.from,
       status: "aguardando_conta",
@@ -169,6 +186,14 @@ export async function POST(request: NextRequest) {
       extracted_direction: extracted.direction,
       category_id: categoryId,
     });
+    if (insertPendingError) {
+      await sendWhatsappText(
+        message.from,
+        "Não consegui salvar esse comprovante, tenta de novo em instantes.",
+        graphConfig
+      );
+      return NextResponse.json({ status: "save_pending_failed" });
+    }
 
     await sendWhatsappText(message.from, buildAccountPrompt(extracted, accounts ?? []), graphConfig);
     return NextResponse.json({ status: "awaiting_account" });
